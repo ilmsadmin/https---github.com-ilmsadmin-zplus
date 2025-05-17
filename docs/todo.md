@@ -37,13 +37,13 @@ To-Do List này phác thảo các công việc cần thiết để triển khai 
   - Tạo key expiration policies.
 
 ### 2.2. Microservices Backend
-- [ ] **Task 6: Cài Đặt API Gateway**  
+- [x] **Task 6: Cài Đặt API Gateway**  
   - Triển khai API Gateway (NestJS/Express hoặc Kong).
   - Cấu hình routing dựa trên hostname.
   - Thiết lập rate limiting và request transformation.
   - Cấu hình circuit breaker pattern.
 
-- [ ] **Task 7: Phát Triển Auth Service**  
+- [x] **Task 7: Phát Triển Auth Service**  
   - Xây dựng microservice xử lý authentication và authorization.
   - Tích hợp JWT với tenant context.
   - Cài đặt MFA và OAuth2/OIDC support.
