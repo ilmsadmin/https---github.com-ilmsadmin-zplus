@@ -13,6 +13,9 @@ CREATE TABLE packages (
     max_users INTEGER NOT NULL CHECK (max_users >= 0),
     max_storage BIGINT NOT NULL CHECK (max_storage >= 0),
     price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
+    billing_cycle VARCHAR(20) NOT NULL DEFAULT 'monthly' CHECK (billing_cycle IN ('monthly', 'yearly', 'quarterly')),
+    features JSONB DEFAULT '{}',
+    api_rate_limit INTEGER DEFAULT 1000,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -23,7 +26,9 @@ CREATE TABLE modules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
+    version VARCHAR(20) DEFAULT '1.0.0',
     is_active BOOLEAN NOT NULL DEFAULT true,
+    config_schema JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -36,6 +41,11 @@ CREATE TABLE tenants (
     schema_name VARCHAR(100) NOT NULL UNIQUE CHECK (schema_name ~ '^[a-z0-9-]+$'),
     package_id UUID NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'deleted')),
+    billing_email VARCHAR(255),
+    billing_address TEXT,
+    billing_info JSONB DEFAULT '{}',
+    subscription_start_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    subscription_end_date TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (package_id) REFERENCES packages(id) ON DELETE RESTRICT
@@ -50,6 +60,10 @@ CREATE TABLE domains (
     domain_name VARCHAR(255) NOT NULL UNIQUE CHECK (domain_name ~ '^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$|^[a-z0-9-]+\.example\.com$'),
     is_default BOOLEAN NOT NULL DEFAULT false,
     status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'disabled')),
+    ssl_enabled BOOLEAN DEFAULT true,
+    ssl_expires_at TIMESTAMP WITH TIME ZONE,
+    verification_method VARCHAR(20) DEFAULT 'txt' CHECK (verification_method IN ('txt', 'cname')),
+    verification_token VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
@@ -62,6 +76,8 @@ CREATE TABLE tenant_modules (
     tenant_id UUID NOT NULL,
     module_id UUID NOT NULL,
     is_enabled BOOLEAN NOT NULL DEFAULT true,
+    config JSONB DEFAULT '{}',
+    custom_settings JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (tenant_id, module_id),
@@ -76,41 +92,86 @@ CREATE TABLE system_users (
     username VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    role VARCHAR(50) NOT NULL CHECK (role IN ('system_admin', 'system_manager')),
+    role VARCHAR(50) NOT NULL CHECK (role IN ('system_admin', 'system_manager', 'support')),
+    is_mfa_enabled BOOLEAN DEFAULT false,
+    mfa_secret VARCHAR(255),
+    last_login_at TIMESTAMP WITH TIME ZONE,
+    failed_login_attempts INTEGER DEFAULT 0,
+    reset_password_token VARCHAR(255),
+    reset_password_expires TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_system_users_email ON system_users(email);
 
--- Dữ liệu mẫu
-INSERT INTO packages (id, name, description, max_users, max_storage, price)
-VALUES
-    ('550e8400-e29b-41d4-a716-446655440000', 'Basic', 'Gói cơ bản', 10, 1000000000, 99.99),
-    ('550e8400-e29b-41d4-a716-446655440001', 'Pro', 'Gói chuyên nghiệp', 50, 5000000000, 199.99);
+-- Tạo bảng billing
+CREATE TABLE billing (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'failed', 'refunded')),
+    payment_method VARCHAR(50),
+    payment_id VARCHAR(255),
+    invoice_number VARCHAR(100),
+    billing_period_start TIMESTAMP WITH TIME ZONE,
+    billing_period_end TIMESTAMP WITH TIME ZONE,
+    paid_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_billing_tenant_id ON billing(tenant_id);
+CREATE INDEX idx_billing_status ON billing(status);
 
-INSERT INTO modules (id, name, description)
+-- Tạo bảng audit_logs
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    actor_id UUID NOT NULL,
+    actor_type VARCHAR(20) NOT NULL CHECK (actor_type IN ('system_user', 'tenant_user')),
+    tenant_id UUID,
+    action VARCHAR(255) NOT NULL,
+    resource_type VARCHAR(50) NOT NULL,
+    resource_id UUID,
+    old_values JSONB,
+    new_values JSONB,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_audit_logs_tenant_id ON audit_logs(tenant_id);
+CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
+CREATE INDEX idx_audit_logs_action ON audit_logs(action);
+
+-- Dữ liệu mẫu
+INSERT INTO packages (id, name, description, max_users, max_storage, price, billing_cycle, features, api_rate_limit)
 VALUES
-    ('550e8400-e29b-41d4-a716-446655440002', 'CRM', 'Quản lý khách hàng'),
-    ('550e8400-e29b-41d4-a716-446655440003', 'HRM', 'Quản lý nhân sự'),
-    ('550e8400-e29b-41d4-a716-446655440004', 'Analytics', 'Phân tích dữ liệu');
+    ('550e8400-e29b-41d4-a716-446655440000', 'Basic', 'Gói cơ bản', 10, 1000000000, 99.99, 'monthly', '{"modules": ["crm"], "white_labeling": false}'::jsonb, 1000),
+    ('550e8400-e29b-41d4-a716-446655440001', 'Pro', 'Gói chuyên nghiệp', 50, 5000000000, 199.99, 'monthly', '{"modules": ["crm", "hrm"], "white_labeling": true}'::jsonb, 5000),
+    ('550e8400-e29b-41d4-a716-446655440123', 'Enterprise', 'Gói doanh nghiệp', 200, 20000000000, 499.99, 'monthly', '{"modules": ["crm", "hrm", "analytics"], "white_labeling": true, "custom_domain": true, "priority_support": true}'::jsonb, 10000);
+
+INSERT INTO modules (id, name, description, version, config_schema)
+VALUES
+    ('550e8400-e29b-41d4-a716-446655440002', 'CRM', 'Quản lý khách hàng', '1.0.0', '{"theme": {"type": "object"}, "notifications": {"type": "object"}}'::jsonb),
+    ('550e8400-e29b-41d4-a716-446655440003', 'HRM', 'Quản lý nhân sự', '1.0.0', '{"theme": {"type": "object"}, "workflow": {"type": "object"}}'::jsonb),
+    ('550e8400-e29b-41d4-a716-446655440004', 'Analytics', 'Phân tích dữ liệu', '1.0.0', '{"dashboard": {"type": "object"}, "reports": {"type": "array"}}'::jsonb);
 
 INSERT INTO system_users (id, username, password, email, role)
 VALUES
     ('550e8400-e29b-41d4-a716-446655440005', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@example.com', 'system_admin');
 
-INSERT INTO tenants (id, name, schema_name, package_id)
+INSERT INTO tenants (id, name, schema_name, package_id, billing_email, subscription_start_date)
 VALUES
-    ('550e8400-e29b-41d4-a716-446655440010', 'Tenant A', 'tenant1', '550e8400-e29b-41d4-a716-446655440000');
+    ('550e8400-e29b-41d4-a716-446655440010', 'Tenant A', 'tenant1', '550e8400-e29b-41d4-a716-446655440000', 'billing@tenant1.com', CURRENT_TIMESTAMP);
 
-INSERT INTO domains (id, tenant_id, domain_name, is_default, status)
+INSERT INTO domains (id, tenant_id, domain_name, is_default, status, ssl_enabled)
 VALUES
-    ('550e8400-e29b-41d4-a716-446655440013', '550e8400-e29b-41d4-a716-446655440010', 'tenant1.example.com', true, 'active'),
-    ('550e8400-e29b-41d4-a716-446655440014', '550e8400-e29b-41d4-a716-446655440010', 'customerdomain.com', false, 'pending');
+    ('550e8400-e29b-41d4-a716-446655440013', '550e8400-e29b-41d4-a716-446655440010', 'tenant1.example.com', true, 'active', true),
+    ('550e8400-e29b-41d4-a716-446655440014', '550e8400-e29b-41d4-a716-446655440010', 'customerdomain.com', false, 'pending', true);
 
-INSERT INTO tenant_modules (tenant_id, module_id, is_enabled)
+INSERT INTO tenant_modules (tenant_id, module_id, is_enabled, config)
 VALUES
-    ('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440002', true),
-    ('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440003', true);
+    ('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440002', true, '{"theme": {"primaryColor": "#1976d2"}}'::jsonb),
+    ('550e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440003', true, '{"theme": {"primaryColor": "#1976d2"}}'::jsonb);
 
 -- Hàm tạo schema tenant
 CREATE OR REPLACE FUNCTION create_tenant_schema(tenant_schema_name VARCHAR)
@@ -120,50 +181,127 @@ DECLARE
 BEGIN
     EXECUTE format('CREATE SCHEMA %I', schema_name);
 
+    -- Users table with MFA support and more profile fields
     EXECUTE format('
         CREATE TABLE %I.users (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             username VARCHAR(100) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL,
             email VARCHAR(255) NOT NULL UNIQUE,
+            first_name VARCHAR(100),
+            last_name VARCHAR(100),
+            phone VARCHAR(50),
             role_id UUID NOT NULL,
+            is_mfa_enabled BOOLEAN DEFAULT false,
+            mfa_secret VARCHAR(255),
+            language VARCHAR(10) DEFAULT ''en'',
+            theme VARCHAR(20) DEFAULT ''light'',
+            timezone VARCHAR(50) DEFAULT ''UTC'',
+            avatar_url TEXT,
             status VARCHAR(20) NOT NULL DEFAULT ''active'' CHECK (status IN (''active'', ''suspended'')),
+            last_login_at TIMESTAMP WITH TIME ZONE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (role_id) REFERENCES %I.roles(id) ON DELETE RESTRICT
         )', schema_name, schema_name);
     EXECUTE format('CREATE INDEX idx_users_email ON %I.users(email)', schema_name);
 
+    -- Enhanced roles with advanced permissions
     EXECUTE format('
         CREATE TABLE %I.roles (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             name VARCHAR(100) NOT NULL,
+            description TEXT,
             permissions JSONB NOT NULL,
+            is_system BOOLEAN DEFAULT false,
+            parent_role_id UUID,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-        )', schema_name);
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (parent_role_id) REFERENCES %I.roles(id) ON DELETE SET NULL
+        )', schema_name, schema_name);
     EXECUTE format('CREATE INDEX idx_roles_name ON %I.roles(name)', schema_name);
 
+    -- User data with versioning
     EXECUTE format('
         CREATE TABLE %I.user_data (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             user_id UUID NOT NULL,
             module_id UUID NOT NULL,
             data JSONB NOT NULL,
+            version INTEGER DEFAULT 1,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES %I.users(id) ON DELETE CASCADE,
             FOREIGN KEY (module_id) REFERENCES system_db.modules(id) ON DELETE RESTRICT
         )', schema_name, schema_name);
     EXECUTE format('CREATE INDEX idx_user_data_user_id ON %I.user_data(user_id)', schema_name);
-
+    
+    -- Teams for collaboration
     EXECUTE format('
-        INSERT INTO %I.roles (id, name, permissions)
+        CREATE TABLE %I.teams (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            name VARCHAR(100) NOT NULL,
+            description TEXT,
+            created_by UUID NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (created_by) REFERENCES %I.users(id) ON DELETE RESTRICT
+        )', schema_name, schema_name);
+    
+    -- Team members
+    EXECUTE format('
+        CREATE TABLE %I.team_members (
+            team_id UUID NOT NULL,
+            user_id UUID NOT NULL,
+            role VARCHAR(50) NOT NULL DEFAULT ''member'' CHECK (role IN (''owner'', ''admin'', ''member'')),
+            joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (team_id, user_id),
+            FOREIGN KEY (team_id) REFERENCES %I.teams(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES %I.users(id) ON DELETE CASCADE
+        )', schema_name, schema_name, schema_name);
+    
+    -- Notifications
+    EXECUTE format('
+        CREATE TABLE %I.notifications (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id UUID NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            message TEXT NOT NULL,
+            type VARCHAR(50) NOT NULL,
+            is_read BOOLEAN DEFAULT false,
+            data JSONB,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES %I.users(id) ON DELETE CASCADE
+        )', schema_name, schema_name);
+    EXECUTE format('CREATE INDEX idx_notifications_user_id ON %I.notifications(user_id)', schema_name);
+    
+    -- Custom fields definitions
+    EXECUTE format('
+        CREATE TABLE %I.custom_fields (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            module_id UUID NOT NULL,
+            entity_type VARCHAR(100) NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            label VARCHAR(100) NOT NULL,
+            field_type VARCHAR(50) NOT NULL,
+            options JSONB,
+            is_required BOOLEAN DEFAULT false,
+            is_searchable BOOLEAN DEFAULT false,
+            created_by UUID NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (module_id) REFERENCES system_db.modules(id) ON DELETE CASCADE,
+            FOREIGN KEY (created_by) REFERENCES %I.users(id) ON DELETE RESTRICT
+        )', schema_name, schema_name);
+    
+    -- Insert default roles with hierarchical permissions
+    EXECUTE format('
+        INSERT INTO %I.roles (id, name, description, permissions, is_system)
         VALUES
-            (''550e8400-e29b-41d4-a716-446655440006'', ''admin'', ''{"crm": ["read", "write", "delete"], "hrm": ["read", "write"], "analytics": ["read"]}''::jsonb),
-            (''550e8400-e29b-41d4-a716-446655440007'', ''manager'', ''{"crm": ["read"], "hrm": ["read"], "analytics": ["read"]}''::jsonb),
-            (''550e8400-e29b-41d4-a716-446655440008'', ''staff'', ''{"crm": ["read", "write"], "hrm": ["read"]}''::jsonb),
-            (''550e8400-e29b-41d4-a716-446655440009'', ''user'', ''{"crm": ["read"]}''::jsonb)
+            (''550e8400-e29b-41d4-a716-446655440006'', ''Admin'', ''Tenant Administrator'', ''{"crm": ["read", "write", "delete", "admin"], "hrm": ["read", "write", "delete", "admin"], "analytics": ["read", "write", "admin"], "settings": ["read", "write", "admin"]}''::jsonb, true),
+            (''550e8400-e29b-41d4-a716-446655440007'', ''Manager'', ''Department Manager'', ''{"crm": ["read", "write"], "hrm": ["read", "write"], "analytics": ["read", "write"], "settings": ["read"]}''::jsonb, true),
+            (''550e8400-e29b-41d4-a716-446655440008'', ''Staff'', ''Regular Staff'', ''{"crm": ["read", "write"], "hrm": ["read"], "analytics": ["read"]}''::jsonb, true),
+            (''550e8400-e29b-41d4-a716-446655440009'', ''User'', ''Basic User'', ''{"crm": ["read"], "hrm": ["read"], "analytics": ["read"]}''::jsonb, true)
     ', schema_name);
 END;
 $$ LANGUAGE plpgsql;
@@ -172,11 +310,26 @@ $$ LANGUAGE plpgsql;
 SELECT create_tenant_schema('tenant1');
 
 -- Dữ liệu mẫu cho tenant1
-INSERT INTO tenant_tenant1.users (id, username, password, email, role_id)
+INSERT INTO tenant_tenant1.users (id, username, password, email, first_name, last_name, role_id)
 VALUES
-    ('550e8400-e29b-41d4-a716-446655440011', 'tenant_admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@tenant1.example.com', '550e8400-e29b-41d4-a716-446655440006');
+    ('550e8400-e29b-41d4-a716-446655440011', 'tenant_admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@tenant1.example.com', 'Admin', 'User', '550e8400-e29b-41d4-a716-446655440006');
 
 INSERT INTO tenant_tenant1.user_data (id, user_id, module_id, data)
 VALUES
-    ('550e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440002', '{"ticket_id": "T123", "status": "open"}'::jsonb);
+    ('550e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440002', '{"ticket_id": "T123", "status": "open", "priority": "high"}'::jsonb);
+
+-- Tạo team mẫu
+INSERT INTO tenant_tenant1.teams (id, name, description, created_by)
+VALUES
+    ('550e8400-e29b-41d4-a716-446655440020', 'Marketing Team', 'Team quản lý marketing', '550e8400-e29b-41d4-a716-446655440011');
+
+-- Thêm admin vào team với vai trò owner
+INSERT INTO tenant_tenant1.team_members (team_id, user_id, role)
+VALUES
+    ('550e8400-e29b-41d4-a716-446655440020', '550e8400-e29b-41d4-a716-446655440011', 'owner');
+
+-- Tạo notification mẫu
+INSERT INTO tenant_tenant1.notifications (id, user_id, title, message, type)
+VALUES
+    ('550e8400-e29b-41d4-a716-446655440030', '550e8400-e29b-41d4-a716-446655440011', 'Welcome to the platform', 'Welcome to our multi-tenant platform! Get started by exploring the features.', 'welcome');
 ```

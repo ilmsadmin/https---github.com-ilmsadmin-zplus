@@ -1,0 +1,476 @@
+_format_version: "2.1"
+_transform: true
+
+# Services for the multi-tenant system
+services:
+  - name: auth-service
+    url: http://auth-service:3000
+    plugins:
+      - name: circuit-breaker
+        config:
+          error_threshold: 50
+          window_size: 10
+          min_calls: 5
+          open_circuit_timeout: 30
+          health_check_interval: 5
+      - name: tenant-transformer
+        config:
+          remove_sensitive_headers: true
+          add_tenant_headers: true
+          sanitize_paths: true
+          sanitize_query_params: true
+      - name: tenant-monitoring
+        config:
+          collect_metrics: true
+          collect_traces: true
+          detailed_status_metrics: true
+          detailed_latency_metrics: true
+    routes:
+      - name: auth-service-route
+        paths:
+          - /api/v1/auth
+        strip_path: false
+        preserve_host: true
+        protocols:
+          - https
+          - http
+
+  - name: tenant-service
+    url: http://tenant-service:3000
+    plugins:
+      - name: tenant-jwt-validator
+        config:
+          auth_service_host: auth-service
+          auth_service_port: 3000
+          auth_service_path: /internal/auth/validate
+          public_paths:
+            - /api/v1/tenant/public
+      - name: circuit-breaker
+        config:
+          error_threshold: 50
+          window_size: 10
+          min_calls: 5
+          open_circuit_timeout: 30
+          health_check_interval: 5
+      - name: tenant-transformer
+        config:
+          remove_sensitive_headers: true
+          add_tenant_headers: true
+          sanitize_paths: true
+          sanitize_query_params: true
+      - name: tenant-monitoring
+        config:
+          collect_metrics: true
+          collect_traces: true
+          detailed_status_metrics: true
+          detailed_latency_metrics: true
+    routes:
+      - name: tenant-service-route
+        paths:
+          - /api/v1/tenant
+        strip_path: false
+        preserve_host: true
+        protocols:
+          - https
+          - http
+  - name: user-service
+    url: http://user-service:3000
+    plugins:
+      - name: tenant-jwt-validator
+        config:
+          auth_service_host: auth-service
+          auth_service_port: 3000
+          auth_service_path: /internal/auth/validate
+      - name: tenant-rate-limiter
+        config:
+          basic_rate: 50
+          pro_rate: 300
+          enterprise_rate: 1500
+          basic_burst_size: 10
+          pro_burst_size: 50
+          enterprise_burst_size: 200
+      - name: circuit-breaker
+        config:
+          error_threshold: 50
+          window_size: 10
+          min_calls: 5
+          open_circuit_timeout: 30
+          health_check_interval: 5
+      - name: tenant-transformer
+        config:
+          remove_sensitive_headers: true
+          add_tenant_headers: true
+          sanitize_paths: true
+          sanitize_query_params: true
+      - name: tenant-monitoring
+        config:
+          collect_metrics: true
+          collect_traces: true
+          detailed_status_metrics: true
+          detailed_latency_metrics: true
+    routes:
+      - name: user-service-route
+        paths:
+          - /api/v1/users
+        strip_path: false
+        preserve_host: true
+        protocols:
+          - https
+          - http
+  - name: billing-service
+    url: http://billing-service:3000
+    plugins:
+      - name: tenant-jwt-validator
+        config:
+          auth_service_host: auth-service
+          auth_service_port: 3000
+          auth_service_path: /internal/auth/validate
+      - name: tenant-rate-limiter
+        config:
+          basic_rate: 20
+          pro_rate: 150
+          enterprise_rate: 750
+          basic_burst_size: 5
+          pro_burst_size: 30
+          enterprise_burst_size: 100
+      - name: circuit-breaker
+        config:
+          error_threshold: 50
+          window_size: 10
+          min_calls: 5
+          open_circuit_timeout: 30
+          health_check_interval: 5
+      - name: tenant-transformer
+        config:
+          remove_sensitive_headers: true
+          add_tenant_headers: true
+          sanitize_paths: true
+          sanitize_query_params: true
+      - name: tenant-monitoring
+        config:
+          collect_metrics: true
+          collect_traces: true
+          detailed_status_metrics: true
+          detailed_latency_metrics: true
+    routes:
+      - name: billing-service-route
+        paths:
+          - /api/v1/billing
+        strip_path: false
+        preserve_host: true
+        protocols:
+          - https
+          - http
+
+  - name: notification-service
+    url: http://notification-service:3000
+    plugins:
+      - name: tenant-jwt-validator
+        config:
+          auth_service_host: auth-service
+          auth_service_port: 3000
+          auth_service_path: /internal/auth/validate
+      - name: tenant-rate-limiter
+        config:
+          basic_rate: 30
+          pro_rate: 150
+          enterprise_rate: 750
+      - name: circuit-breaker
+        config:
+          error_threshold: 50
+          window_size: 10
+          min_calls: 5
+          open_circuit_timeout: 30
+          health_check_interval: 5
+      - name: tenant-transformer
+        config:
+          remove_sensitive_headers: true
+          add_tenant_headers: true
+          sanitize_paths: true
+          sanitize_query_params: true
+      - name: tenant-monitoring
+        config:
+          collect_metrics: true
+          collect_traces: true
+          detailed_status_metrics: true
+          detailed_latency_metrics: true
+    routes:
+      - name: notification-service-route
+        paths:
+          - /api/v1/notifications
+        strip_path: false
+        preserve_host: true
+        protocols:
+          - https
+          - http
+
+  - name: file-service
+    url: http://file-service:3000
+    plugins:
+      - name: tenant-jwt-validator
+        config:
+          auth_service_host: auth-service
+          auth_service_port: 3000
+          auth_service_path: /internal/auth/validate
+      - name: tenant-rate-limiter
+        config:
+          basic_rate: 20
+          pro_rate: 100
+          enterprise_rate: 500
+      - name: circuit-breaker
+        config:
+          error_threshold: 50
+          window_size: 10
+          min_calls: 5
+          open_circuit_timeout: 30
+          health_check_interval: 5
+      - name: tenant-transformer
+        config:
+          remove_sensitive_headers: true
+          add_tenant_headers: true
+          sanitize_paths: true
+          sanitize_query_params: true
+      - name: tenant-monitoring
+        config:
+          collect_metrics: true
+          collect_traces: true
+          detailed_status_metrics: true
+          detailed_latency_metrics: true
+    routes:
+      - name: file-service-route
+        paths:
+          - /api/v1/files
+        strip_path: false
+        preserve_host: true
+        protocols:
+          - https
+          - http
+
+  # System Admin API
+  - name: system-admin-api
+    url: http://system-admin-service:3000
+    plugins:
+      - name: tenant-jwt-validator
+        config:
+          auth_service_host: auth-service
+          auth_service_port: 3000
+          auth_service_path: /internal/auth/validate
+          system_scope: "system:admin"
+      - name: circuit-breaker
+        config:
+          error_threshold: 50
+          window_size: 10
+          min_calls: 5
+          open_circuit_timeout: 30
+          health_check_interval: 5
+      - name: tenant-transformer
+        config:
+          remove_sensitive_headers: true
+          add_tenant_headers: true
+          sanitize_paths: true
+          sanitize_query_params: true
+      - name: tenant-monitoring
+        config:
+          collect_metrics: true
+          collect_traces: true
+          detailed_status_metrics: true
+          detailed_latency_metrics: true
+    routes:
+      - name: system-admin-api-route
+        paths:
+          - /api/v1/admin
+        strip_path: false
+        preserve_host: true
+        hosts:
+          - example.com
+        protocols:
+          - https
+          - http
+
+# Module services (CRM, HRM, Analytics)
+  - name: crm-service
+    url: http://crm-service:3000
+    plugins:
+      - name: tenant-jwt-validator
+        config:
+          auth_service_host: auth-service
+          auth_service_port: 3000
+          auth_service_path: /internal/auth/validate
+      - name: tenant-rate-limiter
+        config:
+          basic_rate: 50
+          pro_rate: 200
+          enterprise_rate: 1000
+      - name: circuit-breaker
+        config:
+          error_threshold: 50
+          window_size: 10
+          min_calls: 5
+          open_circuit_timeout: 30
+          health_check_interval: 5
+      - name: tenant-transformer
+        config:
+          remove_sensitive_headers: true
+          add_tenant_headers: true
+          sanitize_paths: true
+          sanitize_query_params: true
+      - name: tenant-monitoring
+        config:
+          collect_metrics: true
+          collect_traces: true
+          detailed_status_metrics: true
+          detailed_latency_metrics: true
+    routes:
+      - name: crm-service-route
+        paths:
+          - /api/v1/crm
+        strip_path: false
+        preserve_host: true
+        protocols:
+          - https
+          - http
+
+  - name: hrm-service
+    url: http://hrm-service:3000
+    plugins:
+      - name: tenant-jwt-validator
+        config:
+          auth_service_host: auth-service
+          auth_service_port: 3000
+          auth_service_path: /internal/auth/validate
+      - name: tenant-rate-limiter
+        config:
+          basic_rate: 50
+          pro_rate: 200
+          enterprise_rate: 1000
+      - name: circuit-breaker
+        config:
+          error_threshold: 50
+          window_size: 10
+          min_calls: 5
+          open_circuit_timeout: 30
+          health_check_interval: 5
+      - name: tenant-transformer
+        config:
+          remove_sensitive_headers: true
+          add_tenant_headers: true
+          sanitize_paths: true
+          sanitize_query_params: true
+      - name: tenant-monitoring
+        config:
+          collect_metrics: true
+          collect_traces: true
+          detailed_status_metrics: true
+          detailed_latency_metrics: true
+    routes:
+      - name: hrm-service-route
+        paths:
+          - /api/v1/hrm
+        strip_path: false
+        preserve_host: true
+        protocols:
+          - https
+          - http
+
+  - name: analytics-service
+    url: http://analytics-service:3000
+    plugins:
+      - name: tenant-jwt-validator
+        config:
+          auth_service_host: auth-service
+          auth_service_port: 3000
+          auth_service_path: /internal/auth/validate
+      - name: tenant-rate-limiter
+        config:
+          basic_rate: 30
+          pro_rate: 150
+          enterprise_rate: 750
+      - name: circuit-breaker
+        config:
+          error_threshold: 50
+          window_size: 10
+          min_calls: 5
+          open_circuit_timeout: 30
+          health_check_interval: 5
+      - name: tenant-transformer
+        config:
+          remove_sensitive_headers: true
+          add_tenant_headers: true
+          sanitize_paths: true
+          sanitize_query_params: true
+      - name: tenant-monitoring
+        config:
+          collect_metrics: true
+          collect_traces: true
+          detailed_status_metrics: true
+          detailed_latency_metrics: true
+    routes:
+      - name: analytics-service-route
+        paths:
+          - /api/v1/analytics
+        strip_path: false
+        preserve_host: true
+        protocols:
+          - https
+          - http
+
+# API docs service (Swagger/OpenAPI)
+  - name: api-docs
+    url: http://api-docs-service:3000
+    routes:
+      - name: api-docs-route
+        paths:
+          - /api/v1/docs
+        strip_path: false
+        preserve_host: true
+        protocols:
+          - https
+          - http
+
+# Global plugins applied to all services
+plugins:
+  - name: tenant-identifier
+    config:
+      system_domain: example.com
+      cache_ttl: 300
+      redis_host: redis
+      redis_port: 6379
+      redis_timeout: 2000
+      redis_database: 0
+
+  - name: prometheus
+    config:
+      status_code_metrics: true
+      latency_metrics: true
+      bandwidth_metrics: true
+      upstream_health_metrics: true
+
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+        - X-Requested-With
+        - X-Request-ID
+        - X-Tenant-ID
+      exposed_headers:
+        - X-Request-ID
+      credentials: true
+      max_age: 3600
+      preflight_continue: false
+
+  - name: response-transformer
+    config:
+      remove:
+        headers:
+          - X-Powered-By
+          - Server

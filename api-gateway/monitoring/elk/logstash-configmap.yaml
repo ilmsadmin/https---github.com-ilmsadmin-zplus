@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: multi-tenant
+data:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    path.config: /usr/share/logstash/pipeline
+    
+  logstash.conf: |
+    input {
+      tcp {
+        port => 5044
+        codec => json
+      }
+      udp {
+        port => 5044
+        codec => json
+      }
+    }
+    
+    filter {
+      if [kubernetes] and [kubernetes][namespace] == "multi-tenant" {
+        if [kubernetes][container_name] == "kong" {
+          # Parse Kong logs
+          json {
+            source => "message"
+            skip_on_invalid_json => true
+          }
+          
+          # Extract tenant ID from X-Tenant-ID header if available
+          if [request] and [request][headers] and [request][headers][x-tenant-id] {
+            mutate {
+              add_field => { "tenant_id" => "%{[request][headers][x-tenant-id]}" }
+            }
+          }
+          
+          # Extract service name
+          if [service] and [service][name] {
+            mutate {
+              add_field => { "service_name" => "%{[service][name]}" }
+            }
+          }
+          
+          # Add log type
+          mutate {
+            add_field => { "log_type" => "api_gateway" }
+          }
+        }
+      }
+    }
+    
+    output {
+      elasticsearch {
+        hosts => ["elasticsearch:9200"]
+        user => "${ELASTICSEARCH_USERNAME}"
+        password => "${ELASTICSEARCH_PASSWORD}"
+        index => "multi-tenant-logs-%{+YYYY.MM.dd}"
+      }
+    }

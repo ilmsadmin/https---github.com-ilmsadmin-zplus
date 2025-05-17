@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong-gateway
+  namespace: multi-tenant
+  labels:
+    app: kong-gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kong-gateway
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8100"
+        prometheus.io/path: "/metrics"
+      labels:
+        app: kong-gateway
+    spec:
+      containers:
+      - name: kong
+        image: kong:3.2
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        - name: https
+          containerPort: 8443
+          protocol: TCP
+        - name: admin
+          containerPort: 8001
+          protocol: TCP
+        - name: admin-ssl
+          containerPort: 8444
+          protocol: TCP
+        - name: metrics
+          containerPort: 8100
+          protocol: TCP
+        env:
+        - name: KONG_DATABASE
+          value: "postgres"
+        - name: KONG_PG_HOST
+          value: "kong-database"
+        - name: KONG_PG_USER
+          valueFrom:
+            secretKeyRef:
+              name: kong-database-credentials
+              key: username
+        - name: KONG_PG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kong-database-credentials
+              key: password
+        - name: KONG_PG_DATABASE
+          value: "kong"
+        - name: KONG_PROXY_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_ADMIN_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_PROXY_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_ADMIN_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_ADMIN_LISTEN
+          value: "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+        - name: KONG_PROXY_LISTEN
+          value: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
+        - name: KONG_PLUGINS
+          value: "bundled,tenant-identifier,tenant-jwt-validator,tenant-rate-limiter,circuit-breaker,tenant-transformer,tenant-monitoring"
+        - name: KONG_LUA_PACKAGE_PATH
+          value: "/opt/kong/custom-plugins/?.lua;;"
+        - name: KONG_LOG_LEVEL
+          value: "notice"        volumeMounts:
+        - name: kong-custom-plugins
+          mountPath: /opt/kong/custom-plugins
+        - name: kong-config-volume
+          mountPath: /kong/declarative
+        - name: kong-error-templates
+          mountPath: /usr/local/kong/templates
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 8001
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 8001
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+      # Init container to wait for database
+      initContainers:
+      - name: wait-for-database
+        image: busybox
+        command: ['sh', '-c', 'until nc -z kong-database 5432; do echo waiting for database; sleep 2; done;']
+      # Init container to load custom plugins
+      - name: load-custom-plugins
+        image: alpine
+        command: ['sh', '-c', 'mkdir -p /custom-plugins/tenant-identifier /custom-plugins/tenant-jwt-validator /custom-plugins/tenant-rate-limiter /custom-plugins/circuit-breaker /custom-plugins/tenant-transformer /custom-plugins/tenant-monitoring && cp /plugins-source/tenant-identifier/*.lua /custom-plugins/tenant-identifier/ && cp /plugins-source/tenant-jwt-validator/*.lua /custom-plugins/tenant-jwt-validator/ && cp /plugins-source/tenant-rate-limiter/*.lua /custom-plugins/tenant-rate-limiter/ && cp /plugins-source/circuit-breaker/*.lua /custom-plugins/circuit-breaker/ && cp /plugins-source/tenant-transformer/*.lua /custom-plugins/tenant-transformer/ && cp /plugins-source/tenant-monitoring/*.lua /custom-plugins/tenant-monitoring/']
+        volumeMounts:
+        - name: kong-plugins-source
+          mountPath: /plugins-source
+        - name: kong-custom-plugins
+          mountPath: /custom-plugins      volumes:
+      - name: kong-plugins-source
+        configMap:
+          name: kong-plugins-source
+      - name: kong-custom-plugins
+        emptyDir: {}
+      - name: kong-config-volume
+        configMap:
+          name: kong-config
+      - name: kong-error-templates
+        configMap:
+          name: kong-error-templates
