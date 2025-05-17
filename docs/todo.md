@@ -49,7 +49,7 @@ To-Do List này phác thảo các công việc cần thiết để triển khai 
   - Cài đặt MFA và OAuth2/OIDC support.
   - Thiết lập password policies và brute force protection.
 
-- [ ] **Task 8: Phát Triển Tenant Service**  
+- [x] **Task 8: Phát Triển Tenant Service**  
   - Xây dựng microservice quản lý tenants, packages, domains.
   - Cài đặt API cho tenant CRUD operations.
   - Tích hợp onboarding/offboarding workflows.
