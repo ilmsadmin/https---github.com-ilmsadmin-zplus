@@ -55,7 +55,7 @@ To-Do List này phác thảo các công việc cần thiết để triển khai 
   - Tích hợp onboarding/offboarding workflows.
   - Cài đặt domain verification automation.
 
-- [ ] **Task 9: Phát Triển User Service**  
+- [x] **Task 9: Phát Triển User Service**  
   - Xây dựng microservice quản lý users và roles.
   - Cài đặt resource-based access control.
   - Tích hợp user provisioning/deprovisioning.
