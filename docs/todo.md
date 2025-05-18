@@ -79,7 +79,7 @@ To-Do List này phác thảo các công việc cần thiết để triển khai 
   - Thiết lập notification templates và customization.
   - Cài đặt notification preferences và batching.
 
-- [ ] **Task 13: Phát Triển File Service**  
+- [x] **Task 13: Phát Triển File Service**  
   - Xây dựng microservice xử lý file storage và management.
   - Tích hợp với MinIO/S3.
   - Cài đặt virus scanning và file validation.

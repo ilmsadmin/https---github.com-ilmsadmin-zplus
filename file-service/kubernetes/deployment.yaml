@@ -1,0 +1,151 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-service
+  namespace: multi-tenant
+  labels:
+    app: file-service
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: file-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: file-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: file-service
+        image: ${REGISTRY}/multi-tenant/file-service:${TAG}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: postgres-host
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: postgres-port
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: file-service-db-name
+        - name: DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: postgres-user
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: postgres-password
+        - name: STORAGE_TYPE
+          value: "minio"
+        - name: MINIO_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: storage-config
+              key: minio-endpoint
+        - name: MINIO_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: storage-config
+              key: minio-port
+        - name: MINIO_USE_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: storage-config
+              key: minio-use-ssl
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: storage-credentials
+              key: minio-access-key
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: storage-credentials
+              key: minio-secret-key
+        - name: AUTH_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: jwt-secret
+        - name: AUTH_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: service-endpoints
+              key: auth-service-url
+        - name: TENANT_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: service-endpoints
+              key: tenant-service-url
+        - name: NOTIFICATION_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: service-endpoints
+              key: notification-service-url
+        - name: VIRUS_SCAN_ENABLED
+          value: "true"
+        - name: VIRUS_SCAN_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: security-config
+              key: clamav-host
+        - name: VIRUS_SCAN_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: security-config
+              key: clamav-port
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: encryption-secrets
+              key: file-encryption-key
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+      imagePullSecrets:
+      - name: registry-credentials

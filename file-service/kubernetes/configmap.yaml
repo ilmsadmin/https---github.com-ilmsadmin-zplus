@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: file-service-config
+  namespace: multi-tenant
+data:
+  # File Storage Configuration
+  STORAGE_TYPE: "minio"
+  STORAGE_BUCKET_PREFIX: "tenant-"
+  MAX_FILE_SIZE: "100MB"
+  
+  # Security Settings
+  FILE_VALIDATION_ENABLED: "true"
+  ALLOWED_MIME_TYPES: "application/pdf,image/jpeg,image/png,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,text/csv,application/zip"
+  VIRUS_SCAN_ENABLED: "true"
+  
+  # Performance Settings
+  CHUNK_SIZE: "8MB"
+  UPLOAD_CONCURRENCY: "3"
+  DOWNLOAD_CONCURRENCY: "3"
+  
+  # Rate Limiting
+  THROTTLE_TTL: "60"
+  THROTTLE_LIMIT: "100"
+  
+  # Quota Management
+  DEFAULT_STORAGE_QUOTA: "10GB"
