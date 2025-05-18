@@ -120,13 +120,13 @@ To-Do List này phác thảo các công việc cần thiết để triển khai 
   - Cài đặt accessibility features (WCAG compliance).
   - Phát triển dark/light mode và theming support.
 
-- [ ] **Task 19: Tạo Progressive Web App**  
+- [x] **Task 19: Tạo Progressive Web App**  
   - Cấu hình service workers cho offline support.
   - Cài đặt push notifications.
   - Tối ưu performance và loading time.
   - Cài đặt manifest file và app icons.
 
-- [ ] **Task 20: Internationalization**  
+- [x] **Task 20: Internationalization**  
   - Cấu hình i18n framework.
   - Tạo translation files cho multiple languages.
   - Thiết lập locale-specific formatting.

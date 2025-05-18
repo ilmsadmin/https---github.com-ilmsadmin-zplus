@@ -1,0 +1,110 @@
+/* RTL Support for Tailwind CSS */
+
+/* Base RTL styles */
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL adjustments for common elements */
+.rtl .text-left {
+  text-align: right;
+}
+
+.rtl .text-right {
+  text-align: left;
+}
+
+/* RTL-specific padding and margins */
+.rtl .ml-1, .rtl .ml-2, .rtl .ml-3, .rtl .ml-4, .rtl .ml-5, .rtl .ml-6, .rtl .ml-8, .rtl .ml-10, .rtl .ml-12 {
+  margin-left: 0;
+}
+
+.rtl .mr-1, .rtl .mr-2, .rtl .mr-3, .rtl .mr-4, .rtl .mr-5, .rtl .mr-6, .rtl .mr-8, .rtl .mr-10, .rtl .mr-12 {
+  margin-right: 0;
+}
+
+.rtl .pl-1, .rtl .pl-2, .rtl .pl-3, .rtl .pl-4, .rtl .pl-5, .rtl .pl-6, .rtl .pl-8, .rtl .pl-10, .rtl .pl-12 {
+  padding-left: 0;
+}
+
+.rtl .pr-1, .rtl .pr-2, .rtl .pr-3, .rtl .pr-4, .rtl .pr-5, .rtl .pr-6, .rtl .pr-8, .rtl .pr-10, .rtl .pr-12 {
+  padding-right: 0;
+}
+
+/* Reverse flex direction for RTL layouts */
+.rtl .flex-row {
+  flex-direction: row-reverse;
+}
+
+/* Reverse icon directions that imply motion or hierarchy */
+.rtl .transform-rotate-180 {
+  transform: rotate(-180deg);
+}
+
+.rtl .transform-rotate-90 {
+  transform: rotate(-90deg);
+}
+
+/* Mirroring certain SVG icons for RTL */
+.rtl .icon-mirror {
+  transform: scaleX(-1);
+}
+
+/* RTL borders */
+.rtl .border-r {
+  border-right: none;
+  border-left: 1px solid;
+  border-left-color: inherit;
+}
+
+.rtl .border-l {
+  border-left: none;
+  border-right: 1px solid;
+  border-right-color: inherit;
+}
+
+/* RTL rounded corners for inputs, buttons, etc. */
+.rtl .rounded-l {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.rtl .rounded-r {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+}
+
+/* RTL-specific transform */
+.rtl .translate-x-1, .rtl .translate-x-2, .rtl .translate-x-3, .rtl .translate-x-4 {
+  --tw-translate-x: calc(var(--tw-translate-x) * -1);
+  transform: translateX(var(--tw-translate-x)) translateY(var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+/* Calendar and date picker adjustments for RTL */
+.rtl .calendar-rtl {
+  direction: rtl;
+}
+
+.rtl .calendar-rtl .rdp-caption_label,
+.rtl .calendar-rtl .rdp-head_cell {
+  text-align: right;
+}
+
+/* Form control specific adjustments */
+.rtl .form-checkbox,
+.rtl .form-radio {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* Fix for dropdown menus in RTL mode */
+.rtl .dropdown-menu-rtl {
+  left: auto;
+  right: 0;
+  text-align: right;
+}

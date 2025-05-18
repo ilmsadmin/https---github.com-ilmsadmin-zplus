@@ -1,21 +1,26 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { defaultLocale } from '@/lib/i18n/config';
 
 export default function Home() {
-  // For logged-in users, redirect to the appropriate dashboard
+  // Check for token to determine where to redirect
   const token = cookies().get('token')?.value;
   const userRole = cookies().get('userRole')?.value;
   
+  // First redirect to the default locale
+  const basePath = `/${defaultLocale}`;
+  
+  // Then redirect to the appropriate dashboard if logged in
   if (token) {
     if (userRole === 'SYSTEM_ADMIN') {
-      redirect('/system/dashboard');
+      redirect(`${basePath}/system/dashboard`);
     } else {
-      redirect('/tenant/dashboard');
+      redirect(`${basePath}/tenant/dashboard`);
     }
   }
+  
+  // If not logged in, redirect to the home page with locale
+  redirect(basePath);
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">

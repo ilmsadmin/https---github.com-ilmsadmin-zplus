@@ -1,0 +1,7 @@
+// Tệp này sẽ được thay thế bằng file SVG thực tế
+// Đây chỉ là placeholder để minh họa cấu trúc
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#4f46e5" rx="150" ry="150"/>
+  <text x="256" y="280" font-family="Arial" font-size="180" text-anchor="middle" fill="white">MT</text>
+  <path d="M 100 100 L 412 100 L 412 412 L 100 412 Z" stroke="white" stroke-width="20" fill="none"/>
+</svg>
