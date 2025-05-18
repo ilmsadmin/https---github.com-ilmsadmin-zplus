@@ -85,32 +85,36 @@ To-Do List này phác thảo các công việc cần thiết để triển khai 
   - Cài đặt virus scanning và file validation.
   - Tạo logic để quản lý file permissions và sharing.
 
-- [ ] **Task 14: Cài Đặt Message Broker**  
+- [x] **Task 14: Cài Đặt Message Broker**  
   - Triển khai Kafka hoặc RabbitMQ.
   - Thiết lập event streams cho critical operations.
   - Cài đặt event sourcing patterns.
   - Thiết lập dead letter queues và retry logic.
 
 ### 2.3. Frontend
-- [ ] **Task 15: Phát Triển Next.js Application**  
+- [x] **Task 15: Phát Triển Next.js Application**  
   - Khởi tạo Next.js project với TypeScript.
   - Cài đặt React Query/SWR cho data fetching.
   - Tích hợp Tailwind CSS và component library.
   - Cấu hình authentication flow và route protection.
 
-- [ ] **Task 16: Tạo System Admin Dashboard**  
+- [x] **Task 16: Tạo System Admin Dashboard**  
+  - Xây dựng tenant management interface.
+  - Tạo package management và module marketplace.
+  - Cài đặt domain verification và SSL management UI.
+  - Phát triển system-wide analytics dashboard.  
   - Xây dựng tenant management interface.
   - Tạo package management và module marketplace.
   - Cài đặt domain verification và SSL management UI.
   - Phát triển system-wide analytics dashboard.
 
-- [ ] **Task 17: Tạo Tenant Admin Dashboard**  
+- [x] **Task 17: Tạo Tenant Admin Dashboard**  
   - Xây dựng user và permission management.
   - Tạo team collaboration tools.
   - Cài đặt white-labeling và customization options.
   - Phát triển module configuration screens.
 
-- [ ] **Task 18: Tạo Module UI Components**  
+- [x] **Task 18: Tạo Module UI Components**  
   - Phát triển CRM, HRM, Analytics components.
   - Thiết kế responsive và mobile-friendly UI.
   - Cài đặt accessibility features (WCAG compliance).
