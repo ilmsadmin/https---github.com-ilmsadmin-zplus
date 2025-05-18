@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  billing-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: billing-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_DATABASE=system_db
+      - REDIS_HOST=redis
+      - KAFKA_BROKERS=kafka:9092
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - billing-network
+
+  postgres:
+    image: postgres:15
+    container_name: billing-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=system_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - billing-network
+
+  redis:
+    image: redis:alpine
+    container_name: billing-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - billing-network
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  billing-network:
+    driver: bridge
