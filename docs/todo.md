@@ -61,7 +61,7 @@ To-Do List này phác thảo các công việc cần thiết để triển khai 
   - Tích hợp user provisioning/deprovisioning.
   - Cài đặt bulk import/export users.
 
-- [ ] **Task 10: Phát Triển Billing Service**  
+- [x] **Task 10: Phát Triển Billing Service**  
   - Xây dựng microservice xử lý thanh toán và billing.
   - Tích hợp với payment gateways (Stripe/PayPal).
   - Cài đặt invoice generation và notification system.

@@ -1,32 +1,27 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
+import * as paypal from '@paypal/paypal-server-sdk';
 import { BasePaymentProvider } from './base-payment.provider';
+import { IPaymentProvider } from '../../../common/interfaces/payment-provider.interface';
 
 @Injectable()
-export class PayPalProvider extends BasePaymentProvider {
+export class PayPalProvider extends BasePaymentProvider implements IPaymentProvider {
   private readonly logger = new Logger(PayPalProvider.name);
-  private readonly baseUrl: string;
-  private accessToken: string;
-  private tokenExpiry: Date;
+  private readonly environment: paypal.core.SandboxEnvironment | paypal.core.LiveEnvironment;
+  private readonly client: paypal.core.PayPalHttpClient;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private readonly clientId: string,
+    private readonly clientSecret: string,
+    environment: string = 'sandbox',
+  ) {
     super();
-    const environment = this.configService.get<string>('payments.paypal.environment', 'sandbox');
-    this.baseUrl = environment === 'production'
-      ? 'https://api-m.paypal.com'
-      : 'https://api-m.sandbox.paypal.com';
+    this.environment = environment === 'production'
+      ? new paypal.core.LiveEnvironment(clientId, clientSecret)
+      : new paypal.core.SandboxEnvironment(clientId, clientSecret);
+    
+    this.client = new paypal.core.PayPalHttpClient(this.environment);
   }
-
-  private async getAccessToken(): Promise<string> {
-    // Check if token is still valid
-    if (this.accessToken && this.tokenExpiry && this.tokenExpiry > new Date()) {
-      return this.accessToken;
-    }
-
-    try {
-      const clientId = this.configService.get<string>('payments.paypal.clientId');
-      const clientSecret = this.configService.get<string>('payments.paypal.clientSecret');
 
       const response = await axios({
         method: 'post',
