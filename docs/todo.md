@@ -67,13 +67,13 @@ To-Do List này phác thảo các công việc cần thiết để triển khai 
   - Cài đặt invoice generation và notification system.
   - Thiết lập subscription lifecycle management.
 
-- [ ] **Task 11: Phát Triển Module Services**  
+- [x] **Task 11: Phát Triển Module Services**  
   - Xây dựng các microservices cho CRM, HRM, Analytics.
   - Thiết kế module marketplace architecture.
   - Cài đặt module version management.
   - Tạo module configuration và customization API.
 
-- [ ] **Task 12: Phát Triển Notification Service**  
+- [x] **Task 12: Phát Triển Notification Service**  
   - Xây dựng microservice quản lý notifications.
   - Cài đặt email, in-app, và mobile notifications.
   - Thiết lập notification templates và customization.
