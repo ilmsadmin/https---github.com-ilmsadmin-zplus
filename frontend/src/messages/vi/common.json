@@ -1,0 +1,23 @@
+{
+  "app": {
+    "title": "Nền tảng đa người thuê",
+    "welcome": "Chào mừng đến với nền tảng đa người thuê",
+    "loading": "Đang tải...",
+    "error": "Đã xảy ra lỗi"
+  },
+  "navigation": {
+    "home": "Trang chủ",
+    "dashboard": "Bảng điều khiển",
+    "settings": "Cài đặt",
+    "profile": "Hồ sơ",
+    "logout": "Đăng xuất"
+  },
+  "actions": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "create": "Tạo mới",
+    "search": "Tìm kiếm"
+  }
+}

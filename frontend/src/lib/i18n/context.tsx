@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';

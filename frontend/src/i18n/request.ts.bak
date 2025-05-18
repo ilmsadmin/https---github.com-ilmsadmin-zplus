@@ -1,0 +1,80 @@
+import { getRequestConfig } from 'next-intl/server';
+import { locales, defaultLocale, type Locale } from '@/lib/i18n/config';
+
+export default getRequestConfig(async ({ locale }) => {
+  // Validate the locale
+  if (!locales.includes(locale as any)) {
+    locale = defaultLocale;
+  }
+
+  try {
+    // Load messages for the requested locale
+    const commonMessages = await import(`@/messages/${locale}/common.json`)
+      .then(module => module.default || module)
+      .catch(() => ({}));
+    
+    // Add auth messages if they exist
+    const authMessages = await import(`@/messages/${locale}/auth.json`)
+      .then(module => module.default || module)
+      .catch(() => ({}));
+    
+    return {
+      messages: { ...commonMessages, ...authMessages },
+      timeZone: 'Asia/Ho_Chi_Minh', // This could be tenant-specific in a real application
+      now: new Date(),
+      formats: {
+        dateTime: {
+          short: {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          },
+        },
+      },
+    };
+  } catch (error) {
+    console.error(`Error loading messages for locale ${locale}:`, error);
+    
+    // Fallback to default locale messages
+    try {
+      const commonMessages = await import(`@/messages/${defaultLocale}/common.json`)
+        .then(module => module.default || module)
+        .catch(() => ({}));
+      
+      const authMessages = await import(`@/messages/${defaultLocale}/auth.json`)
+        .then(module => module.default || module)
+        .catch(() => ({}));
+      
+      return {
+        messages: { ...commonMessages, ...authMessages },
+        timeZone: 'Asia/Ho_Chi_Minh',
+        now: new Date(),
+        formats: {
+          dateTime: {
+            short: {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            },
+          },
+        },
+      };
+    } catch (fallbackError) {
+      console.error(`Error loading fallback messages for locale ${defaultLocale}:`, fallbackError);
+      return {
+        messages: {},
+        timeZone: 'Asia/Ho_Chi_Minh',
+        now: new Date(),
+        formats: {
+          dateTime: {
+            short: {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            },
+          },
+        },
+      };
+    }
+  }
+});

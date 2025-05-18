@@ -1,0 +1,28 @@
+{
+  "install": {
+    "title": "Cài đặt ứng dụng",
+    "description": "Cài đặt ứng dụng này trên thiết bị của bạn để có trải nghiệm tốt hơn và truy cập ngoại tuyến.",
+    "button": "Cài đặt ngay",
+    "close": "Để sau"
+  },
+  "update": {
+    "title": "Có bản cập nhật mới",
+    "description": "Một phiên bản mới của ứng dụng đã có sẵn.",
+    "button": "Cập nhật ngay"
+  },
+  "offline": {
+    "title": "Bạn đang ngoại tuyến",
+    "description": "Kiểm tra kết nối internet của bạn để quay lại trực tuyến.",
+    "button": "Thử lại"
+  },
+  "push": {
+    "title": "Bật thông báo",
+    "description": "Nhận thông báo về các cập nhật và hoạt động quan trọng.",
+    "button": "Bật",
+    "close": "Không phải bây giờ"
+  },
+  "status": {
+    "online": "Trực tuyến",
+    "offline": "Ngoại tuyến"
+  }
+}

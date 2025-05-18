@@ -18,6 +18,9 @@ const customJestConfig = {
     '!**/*.d.ts',
     '!**/node_modules/**',
   ],
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
+  },
 };
 
 // createJestConfig is exported in this way to ensure that next/jest can load the Next.js configuration

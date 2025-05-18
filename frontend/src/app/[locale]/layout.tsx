@@ -15,11 +15,14 @@ export function generateStaticParams() {
 
 export default async function LocaleLayout({
   children,
-  params: { locale },
+  params,
 }: {
   children: ReactNode;
   params: { locale: string };
 }) {
+  // Get the locale from params and await it if it's a Promise
+  const locale = params.locale;
+  
   // Validate that the locale exists
   if (!locales.includes(locale as any)) {
     notFound();
@@ -30,21 +33,48 @@ export default async function LocaleLayout({
   const tenantId = 'tenant1';
 
   // Get tenant-specific settings
-  const tenantSettings = await getTenantI18nSettings(tenantId);
+  const tenantSettings = await getTenantI18nSettings(tenantId).catch((error) => {
+    console.error('Error loading tenant settings:', error);
+    return { ...locales, defaultLocale: 'en', enabledLocales: ['en'], timezone: 'UTC', rtlSupport: false };
+  });
   
   // If locale is not enabled for this tenant, redirect to default locale
   if (!tenantSettings.enabledLocales.includes(locale as any)) {
     notFound();
   }
 
+  // Load locale messages
+  let localeMessages = {};
+  try {
+    // Load messages for the requested locale
+    localeMessages = await import(`@/messages/${locale}/common.json`)
+      .then(module => module.default || module)
+      .catch(() => ({}));
+    
+    // Add auth messages if they exist
+    const authMessages = await import(`@/messages/${locale}/auth.json`)
+      .then(module => module.default || module)
+      .catch(() => ({}));
+      
+    localeMessages = { ...localeMessages, ...authMessages };
+  } catch (error) {
+    console.error(`Failed to load messages for locale: ${locale}`, error);
+    // If loading messages fails, use an empty object
+    localeMessages = {};
+  }
+
   // Get tenant-specific custom translations if any
-  const customTranslations = await getTenantCustomTranslations(tenantId, locale as any);
+  const customTranslations = await getTenantCustomTranslations(tenantId, locale as any)
+    .catch((error) => {
+      console.error(`Error loading custom translations for tenant ${tenantId}, locale ${locale}:`, error);
+      return {};
+    });
 
   // Merge default translations with tenant-specific ones
   const mergedMessages = {
-    ...messages[locale as any],
+    ...localeMessages,
     ...customTranslations,
-  };  return (
+  };return (
     <NextIntlClientProvider 
       locale={locale} 
       messages={mergedMessages}

@@ -1,0 +1,52 @@
+{
+  "management": {
+    "title": "Quản lý người thuê",
+    "createNew": "Tạo người thuê mới",
+    "editTenant": "Chỉnh sửa người thuê",
+    "deleteTenant": "Xóa người thuê",
+    "tenantDetails": "Chi tiết người thuê"
+  },
+  "settings": {
+    "title": "Cài đặt người thuê",
+    "general": "Cài đặt chung",
+    "appearance": "Giao diện",
+    "security": "Bảo mật",
+    "i18n": "Đa ngôn ngữ",
+    "billing": "Thanh toán & Đăng ký",
+    "domains": "Tên miền & URL",
+    "integrations": "Tích hợp",
+    "api": "Khóa API",
+    "saveChanges": "Lưu thay đổi",
+    "saveSuccess": "Lưu cài đặt thành công",
+    "saveError": "Lỗi khi lưu cài đặt"
+  },
+  "users": {
+    "title": "Quản lý người dùng",
+    "createUser": "Tạo người dùng",
+    "editUser": "Chỉnh sửa người dùng",
+    "deleteUser": "Xóa người dùng",
+    "importUsers": "Nhập người dùng",
+    "exportUsers": "Xuất người dùng",
+    "userDetails": "Chi tiết người dùng",
+    "roles": "Vai trò người dùng",
+    "permissions": "Quyền hạn"
+  },
+  "i18n": {
+    "languageSettings": "Cài đặt ngôn ngữ",
+    "enabledLanguages": "Ngôn ngữ được kích hoạt",
+    "defaultLanguage": "Ngôn ngữ mặc định",
+    "dateFormat": "Định dạng ngày",
+    "timeFormat": "Định dạng giờ",
+    "timezone": "Múi giờ",
+    "currency": "Cài đặt tiền tệ",
+    "currencyCode": "Mã tiền tệ",
+    "currencySymbol": "Ký hiệu tiền tệ",
+    "currencyFormat": "Định dạng tiền tệ",
+    "rtlSupport": "Hỗ trợ ngôn ngữ RTL",
+    "translations": "Bản dịch tùy chỉnh",
+    "addTranslation": "Thêm bản dịch",
+    "editTranslation": "Chỉnh sửa bản dịch",
+    "deleteTranslation": "Xóa bản dịch",
+    "noTranslations": "Không tìm thấy bản dịch tùy chỉnh"
+  }
+}

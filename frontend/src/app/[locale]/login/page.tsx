@@ -4,10 +4,11 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import Link from 'next/link';
 
 export default function Login({
-  params: { locale }
+  params,
 }: {
   params: { locale: Locale }
 }) {
+  const { locale } = params;
   const t = useTranslations('auth');
   const c = useTranslations('common');
   

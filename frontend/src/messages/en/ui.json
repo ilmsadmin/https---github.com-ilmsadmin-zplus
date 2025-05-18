@@ -1,0 +1,64 @@
+{
+  "components": {
+    "datatable": {
+      "search": "Search...",
+      "noResults": "No results found",
+      "rowsPerPage": "Rows per page:",
+      "of": "of",
+      "next": "Next",
+      "previous": "Previous",
+      "loading": "Loading data..."
+    },
+    "form": {
+      "required": "Required",
+      "invalid": "Invalid input",
+      "submit": "Submit",
+      "reset": "Reset"
+    },
+    "modal": {
+      "close": "Close",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "notifications": {
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Information",
+      "dismiss": "Dismiss"
+    },
+    "accessibilityMenu": {
+      "title": "Accessibility Options",
+      "increaseText": "Increase Text Size",
+      "decreaseText": "Decrease Text Size",
+      "highContrast": "High Contrast Mode",
+      "resetSettings": "Reset Settings"
+    },
+    "statCards": {
+      "users": "Total Users",
+      "storage": "Storage Used",
+      "active": "Active Users",
+      "inactive": "Inactive Users",
+      "viewMore": "View More"
+    },
+    "statusIndicator": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "suspended": "Suspended",
+      "error": "Error"
+    },
+    "charts": {
+      "noData": "No data available",
+      "loading": "Loading chart..."
+    }
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Invalid email address",
+    "minLength": "Must be at least {0} characters",
+    "maxLength": "Must be at most {0} characters",
+    "passwordMatch": "Passwords do not match",
+    "invalidFormat": "Invalid format"
+  }
+}

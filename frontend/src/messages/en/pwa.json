@@ -1,0 +1,28 @@
+{
+  "install": {
+    "title": "Install Our App",
+    "description": "Install this application on your device for better experience and offline access.",
+    "button": "Install Now",
+    "close": "Maybe Later"
+  },
+  "update": {
+    "title": "Update Available",
+    "description": "A new version of the application is available.",
+    "button": "Update Now"
+  },
+  "offline": {
+    "title": "You're Offline",
+    "description": "Check your internet connection to get back online.",
+    "button": "Retry"
+  },
+  "push": {
+    "title": "Enable Notifications",
+    "description": "Get notified about important updates and activities.",
+    "button": "Enable",
+    "close": "Not Now"
+  },
+  "status": {
+    "online": "Online",
+    "offline": "Offline"
+  }
+}

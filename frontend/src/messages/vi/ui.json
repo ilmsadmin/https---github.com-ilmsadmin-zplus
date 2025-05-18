@@ -1,0 +1,64 @@
+{
+  "components": {
+    "datatable": {
+      "search": "Tìm kiếm...",
+      "noResults": "Không tìm thấy kết quả",
+      "rowsPerPage": "Số dòng mỗi trang:",
+      "of": "của",
+      "next": "Tiếp",
+      "previous": "Trước",
+      "loading": "Đang tải dữ liệu..."
+    },
+    "form": {
+      "required": "Bắt buộc",
+      "invalid": "Nhập liệu không hợp lệ",
+      "submit": "Gửi",
+      "reset": "Đặt lại"
+    },
+    "modal": {
+      "close": "Đóng",
+      "confirm": "Xác nhận",
+      "cancel": "Hủy"
+    },
+    "notifications": {
+      "success": "Thành công",
+      "error": "Lỗi",
+      "warning": "Cảnh báo",
+      "info": "Thông tin",
+      "dismiss": "Bỏ qua"
+    },
+    "accessibilityMenu": {
+      "title": "Tùy chọn trợ năng",
+      "increaseText": "Tăng kích thước chữ",
+      "decreaseText": "Giảm kích thước chữ",
+      "highContrast": "Chế độ tương phản cao",
+      "resetSettings": "Đặt lại cài đặt"
+    },
+    "statCards": {
+      "users": "Tổng người dùng",
+      "storage": "Dung lượng đã sử dụng",
+      "active": "Người dùng đang hoạt động",
+      "inactive": "Người dùng không hoạt động",
+      "viewMore": "Xem thêm"
+    },
+    "statusIndicator": {
+      "active": "Đang hoạt động",
+      "inactive": "Không hoạt động",
+      "pending": "Đang chờ",
+      "suspended": "Đã tạm ngưng",
+      "error": "Lỗi"
+    },
+    "charts": {
+      "noData": "Không có dữ liệu",
+      "loading": "Đang tải biểu đồ..."
+    }
+  },
+  "validation": {
+    "required": "Trường này là bắt buộc",
+    "email": "Địa chỉ email không hợp lệ",
+    "minLength": "Phải có ít nhất {0} ký tự",
+    "maxLength": "Phải có nhiều nhất {0} ký tự",
+    "passwordMatch": "Mật khẩu không khớp",
+    "invalidFormat": "Định dạng không hợp lệ"
+  }
+}

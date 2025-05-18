@@ -63,16 +63,4 @@ export function LanguageSwitcher({
                 className={`block w-full px-4 py-2 text-left text-sm ${
                   currentLocale === locale
                     ? 'bg-gray-100 font-medium text-gray-900 dark:bg-gray-800 dark:text-white'
-                    : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800'
-                }`}
-                role="menuitem"
-              >
-                {localeNames[locale]}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                 

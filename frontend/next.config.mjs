@@ -2,11 +2,11 @@
 import createNextIntlPlugin from 'next-intl/plugin';
 import withPWA from 'next-pwa';
 
-const withNextIntl = createNextIntlPlugin();
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  // Removed swcMinify as it's no longer supported in Next.js 15+
   images: {
     domains: ['localhost', 'storage.example.com', 'cdn.example.com'],
   },

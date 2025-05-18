@@ -1,0 +1,23 @@
+{
+  "app": {
+    "title": "Multi-Tenant Platform",
+    "welcome": "Welcome to the Multi-Tenant Platform",
+    "loading": "Loading...",
+    "error": "An error occurred"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "search": "Search"
+  }
+}

@@ -5,19 +5,19 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Locale } from '@/lib/i18n/config';
 
 export default function LocalizedHome({
-  params: { locale }
+  params,
 }: {
   params: { locale: Locale }
 }) {
+  // Get the locale from params
+  const locale = params.locale;
   const t = useTranslations('common');
-  
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
       <header className="bg-white shadow-sm dark:bg-gray-900 dark:border-b dark:border-gray-800">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex-shrink-0">
+          <div className="flex h-16 items-center justify-between">            <div className="flex-shrink-0">
               <span className="text-xl font-bold text-gray-900 dark:text-white">Multi-Tenant Platform</span>
             </div>
             <div className="flex items-center space-x-4">

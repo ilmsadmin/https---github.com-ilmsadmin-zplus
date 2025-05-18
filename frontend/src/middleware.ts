@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTenantFromHostname } from './lib/utils';
-import { createI18nMiddleware } from './lib/i18n/middleware';
+import createMiddleware from 'next-intl/middleware';
 import { defaultLocale, locales } from './lib/i18n/config';
 
 export const config = {
@@ -16,6 +16,13 @@ export const config = {
   ],
 };
 
+// Create i18n middleware instance
+const i18nMiddleware = createMiddleware({
+  locales,
+  defaultLocale,
+  localePrefix: 'always'
+});
+
 export default async function middleware(request: NextRequest) {
   const url = request.nextUrl;
   const pathname = url.pathname;
@@ -23,12 +30,11 @@ export default async function middleware(request: NextRequest) {
   
   // Get tenant from hostname
   const tenant = getTenantFromHostname(hostname);
-  
-  // Check if the path has a valid locale
+    // Check if the path has a valid locale
   const pathnameHasValidLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
-  
+
   // Redirect to default locale if no valid locale in path and not accessing the root path
   if (!pathnameHasValidLocale && pathname !== '/') {
     // Get locale from cookie or browser, defaulting to default locale
@@ -44,26 +50,27 @@ export default async function middleware(request: NextRequest) {
       )
     );
   }
-    // Special case for localhost development with custom tenant
+
+  // Special case for localhost development with custom tenant
   const devTenant = url.searchParams.get('tenant');
   if (devTenant && (hostname.includes('localhost') || hostname.includes('127.0.0.1'))) {
     // Store the development tenant in a cookie
-    const response = NextResponse.next();
+    const response = await i18nMiddleware(request);
     response.cookies.set('devTenant', devTenant);
     return response;
   }
-  
-  // For path-based routing in development
+    // For path-based routing in development
   if (pathname.startsWith(`/${defaultLocale}/tenant/`) && !tenant) {
     // Extract tenant from URL for development purposes
     const tenantFromPath = pathname.split('/')[3]; // /locale/tenant/tenantId
     if (tenantFromPath) {
-      const response = NextResponse.next();
+      const response = await i18nMiddleware(request);
       response.cookies.set('devTenant', tenantFromPath);
       return response;
     }
   }
-    // Check if accessing system routes
+
+  // Check if accessing system routes
   if (pathname.includes('/system')) {
     // For system admin routes, verify if on the correct domain
     if (hostname !== 'admin.example.com' && 
@@ -80,7 +87,7 @@ export default async function middleware(request: NextRequest) {
   if (pathname.includes('/tenant') || pathname.includes('/dashboard')) {
     // If we have a tenant, add it to the request
     if (tenant) {
-      const response = NextResponse.next();
+      const response = await i18nMiddleware(request);
       response.cookies.set('X-Tenant-ID', tenant);
       return response;
     } else if (!hostname.includes('localhost') && !hostname.includes('127.0.0.1')) {
@@ -90,6 +97,6 @@ export default async function middleware(request: NextRequest) {
     }
   }
   
-  // Continue with the request
-  return NextResponse.next();
+  // Continue with the i18n middleware for all other routes
+  return i18nMiddleware(request);
 }

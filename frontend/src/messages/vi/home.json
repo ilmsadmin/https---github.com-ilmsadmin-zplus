@@ -1,0 +1,19 @@
+{
+  "welcome": {
+    "title": "Chào mừng đến với Nền tảng của chúng tôi",
+    "description": "Đây là ứng dụng đa người thuê với hỗ trợ nhiều ngôn ngữ."
+  },
+  "actions": {
+    "register": "Đăng ký ngay",
+    "login": "Đăng nhập"
+  },
+  "features": {
+    "title": "Tính năng",
+    "items": {
+      "multiTenant": "Kiến trúc đa người thuê",
+      "i18n": "Hỗ trợ đa ngôn ngữ",
+      "auth": "Xác thực người dùng",
+      "responsive": "Thiết kế thích ứng"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "management": {
+    "title": "Tenant Management",
+    "createNew": "Create New Tenant",
+    "editTenant": "Edit Tenant",
+    "deleteTenant": "Delete Tenant",
+    "tenantDetails": "Tenant Details"
+  },
+  "settings": {
+    "title": "Tenant Settings",
+    "general": "General Settings",
+    "appearance": "Appearance",
+    "security": "Security",
+    "i18n": "Internationalization",
+    "billing": "Billing & Subscription",
+    "domains": "Domains & URLs",
+    "integrations": "Integrations",
+    "api": "API Keys",
+    "saveChanges": "Save Changes",
+    "saveSuccess": "Settings saved successfully",
+    "saveError": "Error saving settings"
+  },
+  "users": {
+    "title": "User Management",
+    "createUser": "Create User",
+    "editUser": "Edit User",
+    "deleteUser": "Delete User",
+    "importUsers": "Import Users",
+    "exportUsers": "Export Users",
+    "userDetails": "User Details",
+    "roles": "User Roles",
+    "permissions": "Permissions"
+  },
+  "i18n": {
+    "languageSettings": "Language Settings",
+    "enabledLanguages": "Enabled Languages",
+    "defaultLanguage": "Default Language",
+    "dateFormat": "Date Format",
+    "timeFormat": "Time Format",
+    "timezone": "Timezone",
+    "currency": "Currency Settings",
+    "currencyCode": "Currency Code",
+    "currencySymbol": "Currency Symbol",
+    "currencyFormat": "Currency Format",
+    "rtlSupport": "RTL Language Support",
+    "translations": "Custom Translations",
+    "addTranslation": "Add Translation",
+    "editTranslation": "Edit Translation",
+    "deleteTranslation": "Delete Translation",
+    "noTranslations": "No custom translations found"
+  }
+}
